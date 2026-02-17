@@ -45,6 +45,20 @@ limit := client.GetNumberFlag("rate-limit", 100.0, context)
 config := client.GetJSONFlag("dashboard-config", defaultConfig, context)
 ```
 
+## Staleness Detection
+
+```go
+client := toggletown.NewClient("tt_live_xxx", &toggletown.Config{
+    OnStale: func(lastUpdatedAt time.Time, age time.Duration) {
+        log.Printf("Flags stale! age: %v", age)
+    },
+})
+
+client.IsStale()          // bool
+client.GetLastUpdatedAt() // time.Time
+client.GetStatus()        // ConnectionStatus{Status, LastUpdatedAt, Age}
+```
+
 ## Documentation
 
 Full documentation with configuration, targeting rules, framework integration (net/http, Gin, Echo), and best practices:
