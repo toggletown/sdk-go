@@ -1,0 +1,1395 @@
+{
+ "description": "Cross-SDK flag evaluation contract. Every evaluator (Node, JS, Python, Go) must return `expected` for each case. Context is canonical {userId, attributes}; each runner adapts it to its SDK's shape. Generated reference buckets: sha256(`userId:flagKey`)[:8] as hex int % 100.",
+ "cases": [
+  {
+   "name": "disabled BOOLEAN returns off value",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": false,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 100
+   },
+   "context": {
+    "userId": "u1"
+   },
+   "expected": false
+  },
+  {
+   "name": "disabled STRING returns off value",
+   "flag": {
+    "key": "f",
+    "type": "STRING",
+    "enabled": false,
+    "defaultValue": "x",
+    "rules": [],
+    "rolloutPercentage": 100
+   },
+   "context": {
+    "userId": "u1"
+   },
+   "expected": ""
+  },
+  {
+   "name": "disabled NUMBER returns off value",
+   "flag": {
+    "key": "f",
+    "type": "NUMBER",
+    "enabled": false,
+    "defaultValue": 5,
+    "rules": [],
+    "rolloutPercentage": 100
+   },
+   "context": {
+    "userId": "u1"
+   },
+   "expected": 0
+  },
+  {
+   "name": "disabled JSON returns off value",
+   "flag": {
+    "key": "f",
+    "type": "JSON",
+    "enabled": false,
+    "defaultValue": {
+     "a": 1
+    },
+    "rules": [],
+    "rolloutPercentage": 100
+   },
+   "context": {
+    "userId": "u1"
+   },
+   "expected": {}
+  },
+  {
+   "name": "disabled ignores matching rules",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": false,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "plan",
+      "operator": "equals",
+      "value": "pro",
+      "rollValue": true
+     }
+    ],
+    "rolloutPercentage": 100
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "plan": "pro"
+    }
+   },
+   "expected": false
+  },
+  {
+   "name": "100% rollout returns default",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 100
+   },
+   "context": {
+    "userId": "u1"
+   },
+   "expected": true
+  },
+  {
+   "name": "100% rollout without userId returns default",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 100
+   },
+   "context": {},
+   "expected": true
+  },
+  {
+   "name": "0% rollout is off",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1"
+   },
+   "expected": false
+  },
+  {
+   "name": "0% rollout without userId is off",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 0
+   },
+   "context": {},
+   "expected": false
+  },
+  {
+   "name": "0% rollout string flag is off",
+   "flag": {
+    "key": "f",
+    "type": "STRING",
+    "enabled": true,
+    "defaultValue": "x",
+    "rules": [],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1"
+   },
+   "expected": ""
+  },
+  {
+   "name": "partial rollout without userId returns default",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 50
+   },
+   "context": {},
+   "expected": true,
+   "note": "no user to bucket, so the default is served"
+  },
+  {
+   "name": "rollout 30% key=f bucket=8",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 30
+   },
+   "context": {
+    "userId": "user-0"
+   },
+   "expected": true,
+   "note": "sha256('user-0:f')[:8] % 100 = 8"
+  },
+  {
+   "name": "rollout 50% key=f bucket=8",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 50
+   },
+   "context": {
+    "userId": "user-0"
+   },
+   "expected": true,
+   "note": "sha256('user-0:f')[:8] % 100 = 8"
+  },
+  {
+   "name": "rollout 70% key=f bucket=8",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 70
+   },
+   "context": {
+    "userId": "user-0"
+   },
+   "expected": true,
+   "note": "sha256('user-0:f')[:8] % 100 = 8"
+  },
+  {
+   "name": "rollout 30% key=f bucket=42",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 30
+   },
+   "context": {
+    "userId": "user-2"
+   },
+   "expected": false,
+   "note": "sha256('user-2:f')[:8] % 100 = 42"
+  },
+  {
+   "name": "rollout 50% key=f bucket=42",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 50
+   },
+   "context": {
+    "userId": "user-2"
+   },
+   "expected": true,
+   "note": "sha256('user-2:f')[:8] % 100 = 42"
+  },
+  {
+   "name": "rollout 70% key=f bucket=42",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 70
+   },
+   "context": {
+    "userId": "user-2"
+   },
+   "expected": true,
+   "note": "sha256('user-2:f')[:8] % 100 = 42"
+  },
+  {
+   "name": "rollout 30% key=f bucket=50",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 30
+   },
+   "context": {
+    "userId": "user-6"
+   },
+   "expected": false,
+   "note": "sha256('user-6:f')[:8] % 100 = 50"
+  },
+  {
+   "name": "rollout 50% key=f bucket=50",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 50
+   },
+   "context": {
+    "userId": "user-6"
+   },
+   "expected": false,
+   "note": "sha256('user-6:f')[:8] % 100 = 50"
+  },
+  {
+   "name": "rollout 70% key=f bucket=50",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 70
+   },
+   "context": {
+    "userId": "user-6"
+   },
+   "expected": true,
+   "note": "sha256('user-6:f')[:8] % 100 = 50"
+  },
+  {
+   "name": "rollout 30% key=f bucket=77",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 30
+   },
+   "context": {
+    "userId": "user-1"
+   },
+   "expected": false,
+   "note": "sha256('user-1:f')[:8] % 100 = 77"
+  },
+  {
+   "name": "rollout 50% key=f bucket=77",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 50
+   },
+   "context": {
+    "userId": "user-1"
+   },
+   "expected": false,
+   "note": "sha256('user-1:f')[:8] % 100 = 77"
+  },
+  {
+   "name": "rollout 70% key=f bucket=77",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 70
+   },
+   "context": {
+    "userId": "user-1"
+   },
+   "expected": false,
+   "note": "sha256('user-1:f')[:8] % 100 = 77"
+  },
+  {
+   "name": "rollout 30% key=checkout-v2 bucket=20",
+   "flag": {
+    "key": "checkout-v2",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 30
+   },
+   "context": {
+    "userId": "user-3"
+   },
+   "expected": true,
+   "note": "sha256('user-3:checkout-v2')[:8] % 100 = 20"
+  },
+  {
+   "name": "rollout 50% key=checkout-v2 bucket=20",
+   "flag": {
+    "key": "checkout-v2",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 50
+   },
+   "context": {
+    "userId": "user-3"
+   },
+   "expected": true,
+   "note": "sha256('user-3:checkout-v2')[:8] % 100 = 20"
+  },
+  {
+   "name": "rollout 70% key=checkout-v2 bucket=20",
+   "flag": {
+    "key": "checkout-v2",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 70
+   },
+   "context": {
+    "userId": "user-3"
+   },
+   "expected": true,
+   "note": "sha256('user-3:checkout-v2')[:8] % 100 = 20"
+  },
+  {
+   "name": "rollout 30% key=checkout-v2 bucket=48",
+   "flag": {
+    "key": "checkout-v2",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 30
+   },
+   "context": {
+    "userId": "user-2"
+   },
+   "expected": false,
+   "note": "sha256('user-2:checkout-v2')[:8] % 100 = 48"
+  },
+  {
+   "name": "rollout 50% key=checkout-v2 bucket=48",
+   "flag": {
+    "key": "checkout-v2",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 50
+   },
+   "context": {
+    "userId": "user-2"
+   },
+   "expected": true,
+   "note": "sha256('user-2:checkout-v2')[:8] % 100 = 48"
+  },
+  {
+   "name": "rollout 70% key=checkout-v2 bucket=48",
+   "flag": {
+    "key": "checkout-v2",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 70
+   },
+   "context": {
+    "userId": "user-2"
+   },
+   "expected": true,
+   "note": "sha256('user-2:checkout-v2')[:8] % 100 = 48"
+  },
+  {
+   "name": "rollout 30% key=checkout-v2 bucket=63",
+   "flag": {
+    "key": "checkout-v2",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 30
+   },
+   "context": {
+    "userId": "user-1"
+   },
+   "expected": false,
+   "note": "sha256('user-1:checkout-v2')[:8] % 100 = 63"
+  },
+  {
+   "name": "rollout 50% key=checkout-v2 bucket=63",
+   "flag": {
+    "key": "checkout-v2",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 50
+   },
+   "context": {
+    "userId": "user-1"
+   },
+   "expected": false,
+   "note": "sha256('user-1:checkout-v2')[:8] % 100 = 63"
+  },
+  {
+   "name": "rollout 70% key=checkout-v2 bucket=63",
+   "flag": {
+    "key": "checkout-v2",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 70
+   },
+   "context": {
+    "userId": "user-1"
+   },
+   "expected": true,
+   "note": "sha256('user-1:checkout-v2')[:8] % 100 = 63"
+  },
+  {
+   "name": "rollout 30% key=checkout-v2 bucket=78",
+   "flag": {
+    "key": "checkout-v2",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 30
+   },
+   "context": {
+    "userId": "user-0"
+   },
+   "expected": false,
+   "note": "sha256('user-0:checkout-v2')[:8] % 100 = 78"
+  },
+  {
+   "name": "rollout 50% key=checkout-v2 bucket=78",
+   "flag": {
+    "key": "checkout-v2",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 50
+   },
+   "context": {
+    "userId": "user-0"
+   },
+   "expected": false,
+   "note": "sha256('user-0:checkout-v2')[:8] % 100 = 78"
+  },
+  {
+   "name": "rollout 70% key=checkout-v2 bucket=78",
+   "flag": {
+    "key": "checkout-v2",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 70
+   },
+   "context": {
+    "userId": "user-0"
+   },
+   "expected": false,
+   "note": "sha256('user-0:checkout-v2')[:8] % 100 = 78"
+  },
+  {
+   "name": "rollout 30% key=new-nav bucket=29",
+   "flag": {
+    "key": "new-nav",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 30
+   },
+   "context": {
+    "userId": "user-1"
+   },
+   "expected": true,
+   "note": "sha256('user-1:new-nav')[:8] % 100 = 29"
+  },
+  {
+   "name": "rollout 50% key=new-nav bucket=29",
+   "flag": {
+    "key": "new-nav",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 50
+   },
+   "context": {
+    "userId": "user-1"
+   },
+   "expected": true,
+   "note": "sha256('user-1:new-nav')[:8] % 100 = 29"
+  },
+  {
+   "name": "rollout 70% key=new-nav bucket=29",
+   "flag": {
+    "key": "new-nav",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 70
+   },
+   "context": {
+    "userId": "user-1"
+   },
+   "expected": true,
+   "note": "sha256('user-1:new-nav')[:8] % 100 = 29"
+  },
+  {
+   "name": "rollout 30% key=new-nav bucket=40",
+   "flag": {
+    "key": "new-nav",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 30
+   },
+   "context": {
+    "userId": "user-6"
+   },
+   "expected": false,
+   "note": "sha256('user-6:new-nav')[:8] % 100 = 40"
+  },
+  {
+   "name": "rollout 50% key=new-nav bucket=40",
+   "flag": {
+    "key": "new-nav",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 50
+   },
+   "context": {
+    "userId": "user-6"
+   },
+   "expected": true,
+   "note": "sha256('user-6:new-nav')[:8] % 100 = 40"
+  },
+  {
+   "name": "rollout 70% key=new-nav bucket=40",
+   "flag": {
+    "key": "new-nav",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 70
+   },
+   "context": {
+    "userId": "user-6"
+   },
+   "expected": true,
+   "note": "sha256('user-6:new-nav')[:8] % 100 = 40"
+  },
+  {
+   "name": "rollout 30% key=new-nav bucket=51",
+   "flag": {
+    "key": "new-nav",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 30
+   },
+   "context": {
+    "userId": "user-0"
+   },
+   "expected": false,
+   "note": "sha256('user-0:new-nav')[:8] % 100 = 51"
+  },
+  {
+   "name": "rollout 50% key=new-nav bucket=51",
+   "flag": {
+    "key": "new-nav",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 50
+   },
+   "context": {
+    "userId": "user-0"
+   },
+   "expected": false,
+   "note": "sha256('user-0:new-nav')[:8] % 100 = 51"
+  },
+  {
+   "name": "rollout 70% key=new-nav bucket=51",
+   "flag": {
+    "key": "new-nav",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 70
+   },
+   "context": {
+    "userId": "user-0"
+   },
+   "expected": true,
+   "note": "sha256('user-0:new-nav')[:8] % 100 = 51"
+  },
+  {
+   "name": "rollout 30% key=new-nav bucket=89",
+   "flag": {
+    "key": "new-nav",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 30
+   },
+   "context": {
+    "userId": "user-2"
+   },
+   "expected": false,
+   "note": "sha256('user-2:new-nav')[:8] % 100 = 89"
+  },
+  {
+   "name": "rollout 50% key=new-nav bucket=89",
+   "flag": {
+    "key": "new-nav",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 50
+   },
+   "context": {
+    "userId": "user-2"
+   },
+   "expected": false,
+   "note": "sha256('user-2:new-nav')[:8] % 100 = 89"
+  },
+  {
+   "name": "rollout 70% key=new-nav bucket=89",
+   "flag": {
+    "key": "new-nav",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 70
+   },
+   "context": {
+    "userId": "user-2"
+   },
+   "expected": false,
+   "note": "sha256('user-2:new-nav')[:8] % 100 = 89"
+  },
+  {
+   "name": "non-ASCII user id buckets by utf-8 sha256",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [],
+    "rolloutPercentage": 50
+   },
+   "context": {
+    "userId": "usér-ü-日本"
+   },
+   "expected": false,
+   "note": "bucket 92"
+  },
+  {
+   "name": "rule equals matches -> boolean on",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "plan",
+      "operator": "equals",
+      "value": "pro"
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "plan": "pro"
+    }
+   },
+   "expected": true
+  },
+  {
+   "name": "rule equals misses -> falls through to 0% rollout",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "plan",
+      "operator": "equals",
+      "value": "pro"
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "plan": "free"
+    }
+   },
+   "expected": false
+  },
+  {
+   "name": "rule not_equals matches -> boolean on",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "plan",
+      "operator": "not_equals",
+      "value": "pro"
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "plan": "free"
+    }
+   },
+   "expected": true
+  },
+  {
+   "name": "rule not_equals misses -> falls through to 0% rollout",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "plan",
+      "operator": "not_equals",
+      "value": "pro"
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "plan": "pro"
+    }
+   },
+   "expected": false
+  },
+  {
+   "name": "rule contains matches -> boolean on",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "email",
+      "operator": "contains",
+      "value": "@acme.com"
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "email": "a@acme.com"
+    }
+   },
+   "expected": true
+  },
+  {
+   "name": "rule contains misses -> falls through to 0% rollout",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "email",
+      "operator": "contains",
+      "value": "@acme.com"
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "email": "a@other.com"
+    }
+   },
+   "expected": false
+  },
+  {
+   "name": "rule not_contains matches -> boolean on",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "email",
+      "operator": "not_contains",
+      "value": "@acme.com"
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "email": "a@other.com"
+    }
+   },
+   "expected": true
+  },
+  {
+   "name": "rule not_contains misses -> falls through to 0% rollout",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "email",
+      "operator": "not_contains",
+      "value": "@acme.com"
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "email": "a@acme.com"
+    }
+   },
+   "expected": false
+  },
+  {
+   "name": "rule gt matches -> boolean on",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "age",
+      "operator": "gt",
+      "value": 18
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "age": 30
+    }
+   },
+   "expected": true
+  },
+  {
+   "name": "rule gt misses -> falls through to 0% rollout",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "age",
+      "operator": "gt",
+      "value": 18
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "age": 10
+    }
+   },
+   "expected": false
+  },
+  {
+   "name": "rule lt matches -> boolean on",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "age",
+      "operator": "lt",
+      "value": 18
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "age": 10
+    }
+   },
+   "expected": true
+  },
+  {
+   "name": "rule lt misses -> falls through to 0% rollout",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "age",
+      "operator": "lt",
+      "value": 18
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "age": 30
+    }
+   },
+   "expected": false
+  },
+  {
+   "name": "rule in matches -> boolean on",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "country",
+      "operator": "in",
+      "value": [
+       "US",
+       "CA"
+      ]
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "country": "US"
+    }
+   },
+   "expected": true
+  },
+  {
+   "name": "rule in misses -> falls through to 0% rollout",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "country",
+      "operator": "in",
+      "value": [
+       "US",
+       "CA"
+      ]
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "country": "DE"
+    }
+   },
+   "expected": false
+  },
+  {
+   "name": "rule not_in matches -> boolean on",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "country",
+      "operator": "not_in",
+      "value": [
+       "US",
+       "CA"
+      ]
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "country": "DE"
+    }
+   },
+   "expected": true
+  },
+  {
+   "name": "rule not_in misses -> falls through to 0% rollout",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "country",
+      "operator": "not_in",
+      "value": [
+       "US",
+       "CA"
+      ]
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "country": "US"
+    }
+   },
+   "expected": false
+  },
+  {
+   "name": "rule always matches -> boolean on",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "anything",
+      "operator": "always",
+      "value": null
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "anything": 1
+    }
+   },
+   "expected": true
+  },
+  {
+   "name": "rule on missing attribute does not match",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": false,
+    "rules": [
+     {
+      "attribute": "plan",
+      "operator": "equals",
+      "value": "pro"
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {}
+   },
+   "expected": false
+  },
+  {
+   "name": "rule uses rollValue",
+   "flag": {
+    "key": "f",
+    "type": "STRING",
+    "enabled": true,
+    "defaultValue": "a",
+    "rules": [
+     {
+      "attribute": "country",
+      "operator": "in",
+      "value": [
+       "US"
+      ],
+      "rollValue": "b"
+     }
+    ],
+    "rolloutPercentage": 100
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "country": "US"
+    }
+   },
+   "expected": "b"
+  },
+  {
+   "name": "matched rule without rollValue on string flag returns defaultValue",
+   "flag": {
+    "key": "f",
+    "type": "STRING",
+    "enabled": true,
+    "defaultValue": "a",
+    "rules": [
+     {
+      "attribute": "country",
+      "operator": "equals",
+      "value": "US"
+     }
+    ],
+    "rolloutPercentage": 0
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "country": "US"
+    }
+   },
+   "expected": "a"
+  },
+  {
+   "name": "rollValue false is honored",
+   "flag": {
+    "key": "f",
+    "type": "BOOLEAN",
+    "enabled": true,
+    "defaultValue": true,
+    "rules": [
+     {
+      "attribute": "plan",
+      "operator": "equals",
+      "value": "free",
+      "rollValue": false
+     }
+    ],
+    "rolloutPercentage": 100
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "plan": "free"
+    }
+   },
+   "expected": false
+  },
+  {
+   "name": "first matching rule wins",
+   "flag": {
+    "key": "f",
+    "type": "STRING",
+    "enabled": true,
+    "defaultValue": "d",
+    "rules": [
+     {
+      "attribute": "plan",
+      "operator": "equals",
+      "value": "pro",
+      "rollValue": "first"
+     },
+     {
+      "attribute": "plan",
+      "operator": "equals",
+      "value": "pro",
+      "rollValue": "second"
+     }
+    ],
+    "rolloutPercentage": 100
+   },
+   "context": {
+    "userId": "u1",
+    "attributes": {
+     "plan": "pro"
+    }
+   },
+   "expected": "first"
+  },
+  {
+   "name": "rule 20% includes bucket 8",
+   "flag": {
+    "key": "f",
+    "type": "STRING",
+    "enabled": true,
+    "defaultValue": "d",
+    "rules": [
+     {
+      "attribute": "plan",
+      "operator": "equals",
+      "value": "pro",
+      "percentage": 20,
+      "rollValue": "rolled"
+     }
+    ],
+    "rolloutPercentage": 100
+   },
+   "context": {
+    "userId": "user-0",
+    "attributes": {
+     "plan": "pro"
+    }
+   },
+   "expected": "rolled"
+  },
+  {
+   "name": "rule 20% excludes bucket 77, falls through to default",
+   "flag": {
+    "key": "f",
+    "type": "STRING",
+    "enabled": true,
+    "defaultValue": "d",
+    "rules": [
+     {
+      "attribute": "plan",
+      "operator": "equals",
+      "value": "pro",
+      "percentage": 20,
+      "rollValue": "rolled"
+     }
+    ],
+    "rolloutPercentage": 100
+   },
+   "context": {
+    "userId": "user-1",
+    "attributes": {
+     "plan": "pro"
+    }
+   },
+   "expected": "d"
+  },
+  {
+   "name": "rule percentage without userId is skipped",
+   "flag": {
+    "key": "f",
+    "type": "STRING",
+    "enabled": true,
+    "defaultValue": "d",
+    "rules": [
+     {
+      "attribute": "plan",
+      "operator": "equals",
+      "value": "pro",
+      "percentage": 20,
+      "rollValue": "rolled"
+     }
+    ],
+    "rolloutPercentage": 100
+   },
+   "context": {
+    "attributes": {
+     "plan": "pro"
+    }
+   },
+   "expected": "d"
+  }
+ ]
+}
