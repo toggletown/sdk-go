@@ -2,7 +2,7 @@
 //
 // Example usage:
 //
-//	client := toggletown.NewClient("tt_live_your_api_key", nil)
+//	client := toggletown.NewClient("your_environment_api_key", nil)
 //	if err := client.Initialize(); err != nil {
 //	    log.Fatal(err)
 //	}

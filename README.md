@@ -19,7 +19,7 @@ import (
 )
 
 func main() {
-    client := toggletown.NewClient("tt_live_your_api_key", nil)
+    client := toggletown.NewClient("your_environment_api_key", nil)
     if err := client.Initialize(); err != nil {
         log.Fatal(err)
     }
@@ -48,7 +48,7 @@ config := client.GetJSONFlag("dashboard-config", defaultConfig, context)
 ## Staleness Detection
 
 ```go
-client := toggletown.NewClient("tt_live_xxx", &toggletown.Config{
+client := toggletown.NewClient("prod_xxx", &toggletown.Config{
     OnStale: func(lastUpdatedAt time.Time, age time.Duration) {
         log.Printf("Flags stale! age: %v", age)
     },

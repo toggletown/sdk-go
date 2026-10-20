@@ -128,7 +128,7 @@ func getOffValue(flagType string) interface{} {
 	case "NUMBER":
 		return float64(0)
 	case "JSON":
-		return nil
+		return map[string]interface{}{}
 	default:
 		return nil
 	}
@@ -137,7 +137,7 @@ func getOffValue(flagType string) interface{} {
 // evaluateFlag evaluates a flag for a given context
 func evaluateFlag(config FlagConfig, context map[string]interface{}) interface{} {
 	if !config.Enabled {
-		return config.DefaultValue
+		return getOffValue(config.Type)
 	}
 
 	// Get user_id for rollout
@@ -164,6 +164,9 @@ func evaluateFlag(config FlagConfig, context map[string]interface{}) interface{}
 		if rule.RollValue != nil {
 			return rule.RollValue
 		}
+		if config.Type == "BOOLEAN" {
+			return true
+		}
 		return config.DefaultValue
 	}
 
@@ -172,6 +175,11 @@ func evaluateFlag(config FlagConfig, context map[string]interface{}) interface{}
 		if isInRollout(userID, config.Key, config.RolloutPercentage) {
 			return config.DefaultValue
 		}
+		return getOffValue(config.Type)
+	}
+
+	// Enabled but rolled out to nobody: off, matching the dashboard preview
+	if config.RolloutPercentage <= 0 {
 		return getOffValue(config.Type)
 	}
 

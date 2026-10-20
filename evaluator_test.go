@@ -75,6 +75,11 @@ func TestEvaluateFlag(t *testing.T) {
 		assert.Equal(t, false, evaluateFlag(config, map[string]interface{}{}))
 	})
 
+	t.Run("enabled flag with 0% rollout returns off value", func(t *testing.T) {
+		config := FlagConfig{Type: "BOOLEAN", Enabled: true, DefaultValue: true, RolloutPercentage: 0}
+		assert.Equal(t, false, evaluateFlag(config, map[string]interface{}{"user_id": "u1"}))
+	})
+
 	t.Run("enabled boolean with 100% rollout", func(t *testing.T) {
 		config := FlagConfig{
 			Type:              "BOOLEAN",
